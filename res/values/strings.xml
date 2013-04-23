@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">myRoute</string>
+    <string name="searchPlaceholder">Search for Address</string>
+    <string name="map">Map</string>
+    <string name="direction">Direction</string>
+    <string name="settings">Settings</string>
+
+</resources>

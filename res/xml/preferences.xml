@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="Avoids" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="highways"
+            android:title="Avoid Highways" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="tolls"
+            android:title="Avoid Tolls" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Map Options" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="traffic"
+            android:title="Traffic View" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="satellite"
+            android:title="Satellite Map" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Miscellaneous" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:enabled="true"
+            android:key="voiceCommand"
+            android:title="Voice Command" />
+
+        <!--
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="sms"                       
+            android:title="Auto SMS Sender" />
+        -->
+        
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="incomingCallSMS"
+            android:title="Driving SMS to Caller" />
+
+        <Preference
+            android:enabled="true"
+            android:key="btnContact"
+            android:title="Refresh Contact Details" />
+
+        <EditTextPreference
+            android:key="homeAddress"
+            android:summary="Enter your home address"
+            android:title="Home Address" />
+        <!-- 
+        <EditTextPreference
+            android:key="toleranceDistance"
+            android:defaultValue="20"
+            android:summary="Enter Rerouting Tolerance Distance"
+            android:title="Rerouting Tolerance Distance" />
+             -->
+    </PreferenceCategory>
+
+</PreferenceScreen>
