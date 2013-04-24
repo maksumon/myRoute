@@ -1,97 +1,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity" >
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".MainActivity" >
 
     <org.osmdroid.views.MapView
-        android:id="@+id/mapView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+            android:id="@+id/mapView"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
 
-    <RelativeLayout
-        android:id="@+id/layoutTop"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:background="#44000000"
-        android:gravity="right"
-        android:weightSum="10" >
-
-        <AutoCompleteTextView
-            android:id="@+id/txtSearch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:hint="@string/searchPlaceholder"
-            android:singleLine="true" >
-
-            <requestFocus />
-        </AutoCompleteTextView>
-
-        <LinearLayout
-            android:id="@+id/layoutButtons"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:gravity="right"
-            android:padding="2dp" >
-
-            <Button
-                android:id="@+id/btnContactSearch"
-                android:layout_width="40dip"
-                android:layout_height="40dip"
-                android:background="@drawable/contact"
-                android:onClick="onContactSearchPress"
-                android:paddingBottom="1dp"
-                android:visibility="gone" />
-
-            <Button
-                android:id="@+id/btnClearSearch"
-                android:layout_width="40dip"
-                android:layout_height="40dip"
-                android:background="@drawable/cedoclose"
-                android:onClick="onClearSearchPress"
-                android:paddingTop="1dp"
-                android:visibility="gone" />
-        </LinearLayout>
-    </RelativeLayout>
-
-    <LinearLayout
-        android:id="@+id/layoutBottom"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#44000000"
-        android:orientation="horizontal" >
-
-        <Button
-            android:id="@+id/btnMap"
-            style="@style/ButtonText"
-            android:layout_weight="3"
-            android:background="@drawable/btn_black"
-            android:onClick="onMapPress"
-            android:text="@string/map" >
-        </Button>
-
-        <Button
-            android:id="@+id/btnDirection"
-            style="@style/ButtonText"
-            android:layout_weight="3"
-            android:background="@drawable/btn_black"
-            android:onClick="onDirectionPress"
-            android:text="@string/direction" >
-        </Button>
-
-        <Button
-            android:id="@+id/btnSettings"
-            style="@style/ButtonText"
-            android:layout_weight="3"
-            android:background="@drawable/btn_black"
-            android:onClick="onSettingsPress"
-            android:text="@string/settings" >
-        </Button>
-    </LinearLayout>
-
+    <include layout="@layout/layout_search"></include>
+    <include layout="@layout/layout_footer"></include>
 </RelativeLayout>

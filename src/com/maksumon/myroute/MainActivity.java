@@ -1,21 +1,8 @@
 package com.maksumon.myroute;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.List;
-
-import org.osmdroid.DefaultResourceProxyImpl;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.tileprovider.util.CloudmadeUtil;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapController;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.SimpleLocationOverlay;
-
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
@@ -28,24 +15,26 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
-import android.widget.Toast;
+import org.osmdroid.DefaultResourceProxyImpl;
+import org.osmdroid.google.wrapper.MyLocationOverlay;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.tileprovider.util.CloudmadeUtil;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapController;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.SimpleLocationOverlay;
+
+import java.io.IOException;
+import java.util.List;
 
 public class MainActivity extends Activity {
-
-	public static final String PREFS_NAME = "firstrunpreference";
-	SharedPreferences firstRunPref;
-	boolean firstRun;
-
-	ProgressDialog progressDialog;
-
-	OutputStreamWriter phoneBook;
-	OutputStreamWriter addressBook;
 
 	GPSTracker gps;
 
 	private MapView mapView;
 	private MapController mapController;
 	private SimpleLocationOverlay myLocationOverlay;
+    private MyLocationOverlay mLocationOverlay;
 
 	private GeoPoint startPoint;
 	private GeoPoint searchPoint;
@@ -62,12 +51,10 @@ public class MainActivity extends Activity {
 
 		CloudmadeUtil.retrieveCloudmadeKey(getApplicationContext());
 
-		firstRunPref = getSharedPreferences(PREFS_NAME, 0);
-		firstRun = firstRunPref.getBoolean("firstRun", true);
+        Typeface typeface = Typeface.createFromAsset(getAssets(),"Fondamento-Regular.ttf");
 
-		new ContactDBAsync().execute();
-
-		txtSearch = (AutoCompleteTextView)findViewById(R.id.txtSearch);
+        txtSearch = (AutoCompleteTextView)findViewById(R.id.txtSearch);
+        txtSearch.setTypeface(typeface);
 		txtSearch.addTextChangedListener(textChecker);
 		txtSearch.setOnEditorActionListener(new OnEditorActionListener() {
 
@@ -94,30 +81,39 @@ public class MainActivity extends Activity {
 
 		btnMap.setPressed(true);
 
-		//Get Current Location
-		gps = new GPSTracker(MainActivity.this);
-
-		// check if GPS enabled
-		if(gps.canGetLocation()){
-
-			double latitude = gps.getLatitude();
-			double longitude = gps.getLongitude();
-
-			startPoint = new GeoPoint(latitude,longitude);
-			txtSearch.setText(latlongToAddress(latitude, longitude));
-			btnClearSearch.setVisibility(View.VISIBLE);
-
-			// \n is for new line
-			Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
-		}else{
-			// can't get location
-			// GPS or Network is not enabled
-			// Ask user to enable GPS/network in settings
-			gps.showSettingsAlert();
-		}
+//		//Get Current Location
+//		gps = new GPSTracker(MainActivity.this);
+//
+//		// check if GPS enabled
+//		if(gps.canGetLocation()){
+//
+//			double latitude = gps.getLatitude();
+//			double longitude = gps.getLongitude();
+//
+//			startPoint = new GeoPoint(latitude,longitude);
+//			txtSearch.setText(latlongToAddress(latitude, longitude));
+//			btnClearSearch.setVisibility(View.VISIBLE);
+//		}else{
+//			// can't get location
+//			// GPS or Network is not enabled
+//			// Ask user to enable GPS/network in settings
+//			gps.showSettingsAlert();
+//		}
 
 		//startPoint = new GeoPoint(23.822823,90.36256);
 		//startPoint = new GeoPoint(34.123581,-118.146332);
+
+        /* taking data from caller activity page */
+        // ###################Receiving data starts
+        Bundle extras = getIntent().getExtras();
+        if (extras == null) {
+            return;
+        } else {
+            txtSearch.setText(extras.getString("address"));
+            startPoint = new GeoPoint(extras.getDouble("latitude"), extras.getDouble("longitude"));
+            btnClearSearch.setVisibility(View.VISIBLE);
+        }
+        // ##### Receiving data ends
 
 		mapView = (MapView)findViewById(R.id.mapView);
 		mapView.setTileSource(TileSourceFactory.CLOUDMADESTANDARDTILES);
@@ -282,44 +278,6 @@ public class MainActivity extends Activity {
 
 		Intent i = new Intent(MainActivity.this,ContactListActivity.class);
 		startActivityForResult(i, 101);
-	}
-
-	/** Called to cache Contact from Address book */
-	public class ContactDBAsync extends AsyncTask<String, Integer, String> {
-
-		@Override
-		protected void onPreExecute() {
-			progressDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Caching Data", true);
-		}
-
-		//@Override
-		protected void onPostExecute(String result) {
-			progressDialog.dismiss();
-		}
-
-		@Override
-		protected String doInBackground(String... params) {
-
-			try {
-				if(firstRun){
-
-					SharedPreferences.Editor editor = firstRunPref.edit();
-					editor.putBoolean("firstRun", false);
-
-					// Commit the edits!
-					editor.commit();
-
-					ContactDB contactDB = new ContactDB(MainActivity.this.getApplicationContext());
-					contactDB.contactDBInit();
-				}
-
-			} catch (Exception e) {
-
-				e.printStackTrace();
-			}
-
-			return null;
-		}
 	}
 
 	/** Called to Geocode contact list address and update Map accordingly. */

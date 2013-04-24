@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/layoutTop"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#44000000"
+        android:gravity="right"
+        android:weightSum="10" >
+
+    <AutoCompleteTextView
+            android:id="@+id/txtSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:hint="@string/searchPlaceholder"
+            android:singleLine="true" >
+
+        <requestFocus />
+    </AutoCompleteTextView>
+
+    <LinearLayout
+            android:id="@+id/layoutButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:gravity="right"
+            android:padding="2dp" >
+
+        <Button
+                android:id="@+id/btnContactSearch"
+                android:layout_width="40dip"
+                android:layout_height="40dip"
+                android:background="@drawable/contact"
+                android:onClick="onContactSearchPress"
+                android:paddingBottom="1dp"
+                android:visibility="gone" />
+
+        <Button
+                android:id="@+id/btnClearSearch"
+                android:layout_width="40dip"
+                android:layout_height="40dip"
+                android:background="@drawable/cedoclose"
+                android:onClick="onClearSearchPress"
+                android:paddingTop="1dp"
+                android:visibility="visible" />
+    </LinearLayout>
+</RelativeLayout>

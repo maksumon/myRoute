@@ -1,11 +1,5 @@
 package com.maksumon.myroute;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -15,12 +9,14 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.view.View;
 import android.view.Window;
-import android.widget.AdapterView;
+import android.widget.*;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListView;
-import android.widget.TextView;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 public class ContactListActivity extends Activity{
 

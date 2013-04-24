@@ -6,5 +6,8 @@
     <string name="map">Map</string>
     <string name="direction">Direction</string>
     <string name="settings">Settings</string>
+    <string name="description">Turn-by-turn Navigation Applicaiton</string>
+    <string name="copyright">&#169; MAKSumon</string>
+    <string name="licenses">Using OSMDroid &#38; OSMBonusPack</string>
 
 </resources>

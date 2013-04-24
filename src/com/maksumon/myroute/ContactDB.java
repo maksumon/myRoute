@@ -1,37 +1,32 @@
 package com.maksumon.myroute;
 
-import java.io.File;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-
-import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
-import android.os.Build;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+
+import java.io.File;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 
 public class ContactDB {
 
 	String name;
 	String number;
 	String address;
-	ProgressDialog progressDialog;
 
 	OutputStreamWriter phoneBook;
 	OutputStreamWriter addressBook;
 
-	String vrsn=Build.VERSION.RELEASE;
-
-	Context _context;
+	Context context;
 	
 	ArrayList<String> names;
 
 	/** Called to initialize the class.
 	 * context = Application context */
 	public ContactDB(Context context){
-		_context = context;
+		this.context = context;
 	}
 
 	/** Called to initialize variables. */
@@ -52,18 +47,18 @@ public class ContactDB {
 		// try to write the content
 		try {
 			// open Files for writing
-			phoneBook = new OutputStreamWriter(_context.openFileOutput("myroute-phone-book.txt",0));
-			addressBook = new OutputStreamWriter(_context.openFileOutput("myroute-address-book.txt",0));
+			phoneBook = new OutputStreamWriter(this.context.openFileOutput("myroute-phone-book.txt",0));
+			addressBook = new OutputStreamWriter(this.context.openFileOutput("myroute-address-book.txt",0));
 
 		} catch (java.io.IOException e) {
-			//do something if an IOException occurs.
+            e.printStackTrace();
 		}
 	}
 
 	/** Called to check if file exists. */
 	public void filesExist(){
 
-		File dir = _context.getFilesDir();
+		File dir = this.context.getFilesDir();
 		File phoneBookFile = new File(dir, "myroute-phone-book.txt");
 		File addressBookFile = new File(dir, "myroute-address-book.txt");
 		boolean phoneExists = phoneBookFile.exists();
@@ -82,7 +77,7 @@ public class ContactDB {
 	/** Called to traverse through the Contact API and populate list with phone contacts. */
 	public void phoneBookEntry(){
 		try {
-			ContentResolver cr = _context.getContentResolver();
+			ContentResolver cr = this.context.getContentResolver();
 			String sortOrder = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
 			Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, sortOrder);
 
@@ -123,7 +118,6 @@ public class ContactDB {
 			phoneBook.close();
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -131,7 +125,7 @@ public class ContactDB {
 	/** Called to traverse through the Contact API and populate list with address contacts. */
 	public void addressBookEntry(){
 		try {
-			ContentResolver cr = _context.getContentResolver();
+			ContentResolver cr = this.context.getContentResolver();
 			String sortOrder = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
 			Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, sortOrder);
 
@@ -148,24 +142,9 @@ public class ContactDB {
 						if (addrCur.getCount() > 0){
 							while(addrCur.moveToNext()) {
 
-
-								//								if(vrsn.startsWith("4"))
-								//								{
-								//									String fa = addrCur.getString(
-								//											addrCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS ));
-								//
-								//									addressBook.write(name + ":" +fa+ "\n");
-								//								}
-								//
-								//								else
-								//								{
 								String street = addrCur.getString(addrCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.STREET));
-								//String city = addrCur.getString(addrCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.CITY));
-								//String state = addrCur.getString(addrCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.REGION));
 
-								//addressBook.write(name + ":" + street + " " + city + " " + state + "\n");
 								addressBook.write(name + ":" + street + "\n");
-								//								}
 							}
 						}
 						addrCur.close();
@@ -176,7 +155,6 @@ public class ContactDB {
 			addressBook.close();
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

@@ -21,3 +21,9 @@ local.properties
 
 # Mac generated file
 .DS_Store
+
+# IDEA Ignores
+*.iml
+*.ipr
+*.iws
+.idea/
