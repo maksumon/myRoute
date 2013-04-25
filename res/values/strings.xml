@@ -3,6 +3,7 @@
 
     <string name="app_name">myRoute</string>
     <string name="searchPlaceholder">Search for Address</string>
+    <string name="destinationPlaceholder">Tpye Address to Get Direction</string>
     <string name="map">Map</string>
     <string name="direction">Direction</string>
     <string name="settings">Settings</string>

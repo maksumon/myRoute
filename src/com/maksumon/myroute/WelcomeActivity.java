@@ -8,10 +8,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.Log;
-import android.widget.Toast;
-import org.osmdroid.util.GeoPoint;
 
 import java.io.IOException;
 import java.util.List;
@@ -117,7 +114,7 @@ public class WelcomeActivity extends Activity {
         GPSTracker gps = new GPSTracker(WelcomeActivity.this);
 
         double latitude, longitude;
-        String startAddress;
+        String startAddress = "";
 
         @Override
         protected void onPreExecute() {
@@ -133,12 +130,14 @@ public class WelcomeActivity extends Activity {
 
             gps.stopUsingGPS();
 
-            Intent intent = new Intent(WelcomeActivity.this,MainActivity.class);
-            intent.putExtra("address", startAddress);
-            intent.putExtra("latitude", latitude);
-            intent.putExtra("longitude", longitude);
-            startActivity(intent);
-            finish();
+            if(!startAddress.isEmpty()){
+                Intent intent = new Intent(WelcomeActivity.this,MainActivity.class);
+                intent.putExtra("address", startAddress);
+                intent.putExtra("latitude", latitude);
+                intent.putExtra("longitude", longitude);
+                startActivity(intent);
+                finish();
+            }
         }
 
         @Override
@@ -148,10 +147,12 @@ public class WelcomeActivity extends Activity {
                 // check if GPS enabled
                 if(gps.canGetLocation()){
 
-                    latitude = gps.getLatitude();
-                    longitude = gps.getLongitude();
+                    while(startAddress.isEmpty()){
+                        latitude = gps.getLatitude();
+                        longitude = gps.getLongitude();
 
-                    startAddress = latlongToAddress(latitude,longitude);
+                        startAddress = latlongToAddress(latitude,longitude);
+                    }
                 }else{
                     // can't get location
                     // GPS or Network is not enabled
