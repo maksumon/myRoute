@@ -12,11 +12,19 @@
     <include layout="@layout/layout_search"
             android:id="@+id/layoutSearch">
     </include>
+
     <include layout="@layout/layout_destination"
             android:id="@+id/layoutDestination"
             android:visibility="gone">
     </include>
+
+    <include layout="@layout/layout_route_options"
+             android:id="@+id/layoutRouteOptions"
+             android:visibility="gone">
+    </include>
+
     <include layout="@layout/layout_footer"
             android:id="@+id/layoutFooter">
-     </include>
+    </include>
+
 </RelativeLayout>

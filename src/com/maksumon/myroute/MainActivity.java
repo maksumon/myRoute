@@ -45,7 +45,9 @@ public class MainActivity extends Activity {
 	private MapController mapController;
     private MyItemizedOverlay myItemizedOverlay;
 
-    private Drawable marker;
+    private Drawable currentMarker;
+    private Drawable sourceMarker;
+    private Drawable destinationMarker;
     ResourceProxy resourceProxy;
 
 	private GeoPoint startPoint;
@@ -58,11 +60,22 @@ public class MainActivity extends Activity {
 
 	Button btnMap, btnDirection, btnSettings;
 	Button btnClearSearch, btnContactSearch, btnClearDestination, btnContactDestination;
+    Button btnCurrent, btnCar, btnBicycle, btnPedestrian, btnItinerary;
 
     RelativeLayout layoutSearch;
     RelativeLayout layoutDestination;
+    LinearLayout layoutRouteOptions;
 
     ProgressDialog progressDialog;
+
+    protected Road road;
+    protected PathOverlay roadOverlay;
+    protected ItemizedOverlayWithBubble<ExtendedOverlayItem> roadNodeMarkers;
+
+    boolean isRouteFound = false;
+
+    protected static final int ROUTE_REQUEST = 1;
+    protected static final int CONTACT_REQUEST = 2;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +86,7 @@ public class MainActivity extends Activity {
 
         layoutSearch = (RelativeLayout)findViewById(R.id.layoutSearch);
         layoutDestination = (RelativeLayout)findViewById(R.id.layoutDestination);
+        layoutRouteOptions = (LinearLayout)findViewById(R.id.layoutRouteOptions);
 
         Typeface typeface = Typeface.createFromAsset(getAssets(),"Fondamento-Regular.ttf");
 
@@ -86,7 +100,7 @@ public class MainActivity extends Activity {
 
 				if (addressToLatLong(txtSearch.getText().toString())){
 
-                    myItemizedOverlay = new MyItemizedOverlay(marker, resourceProxy);
+                    myItemizedOverlay = new MyItemizedOverlay(currentMarker, resourceProxy);
                     mapView.getOverlays().add(myItemizedOverlay);
                     myItemizedOverlay.addItem(searchPoint, "", "");
                     mapController.setCenter(searchPoint);
@@ -105,7 +119,13 @@ public class MainActivity extends Activity {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 
                 if (addressToLatLong(txtDestination.getText().toString())) {
-                    new DirectionRequestAsync().execute();
+
+                    txtDestination.setText(address.getAddressLine(0) +", "+
+                            address.getLocality() +", "+
+                            address.getAdminArea() +", "+
+                            address.getCountryCode());
+
+                    new DirectionRequestAsync().execute("routeType=fastest");
                 }
 
                 return false;
@@ -122,26 +142,13 @@ public class MainActivity extends Activity {
         btnClearDestination = (Button)findViewById(R.id.btnClearDestination);
         btnContactDestination = (Button)findViewById(R.id.btnContactDestination);
 
-		btnMap.setPressed(true);
+        btnCurrent = (Button)findViewById(R.id.btnCurrent);
+        btnCar = (Button)findViewById(R.id.btnCar);
+        btnBicycle = (Button)findViewById(R.id.btnBicycle);
+        btnPedestrian = (Button)findViewById(R.id.btnPedestrian);
+        btnItinerary = (Button)findViewById(R.id.btnItinerary);
 
-//		//Get Current Location
-//		gps = new GPSTracker(MainActivity.this);
-//
-//		// check if GPS enabled
-//		if(gps.canGetLocation()){
-//
-//			double latitude = gps.getLatitude();
-//			double longitude = gps.getLongitude();
-//
-//			startPoint = new GeoPoint(latitude,longitude);
-//			txtSearch.setText(latlongToAddress(latitude, longitude));
-//			btnClearSearch.setVisibility(View.VISIBLE);
-//		}else{
-//			// can't get location
-//			// GPS or Network is not enabled
-//			// Ask user to enable GPS/network in settings
-//			gps.showSettingsAlert();
-//		}
+		btnMap.setSelected(true);
 
 		//startPoint = new GeoPoint(23.822823,90.36256);
 		//startPoint = new GeoPoint(34.123581,-118.146332);
@@ -172,11 +179,11 @@ public class MainActivity extends Activity {
 
         Drawable tempMarker = getResources().getDrawable(R.drawable.marker2);
         Bitmap bitmap = ((BitmapDrawable) tempMarker).getBitmap();
-        marker = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 50, 50, true));
+        currentMarker = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 50, 50, true));
 
         resourceProxy = new DefaultResourceProxyImpl(getApplicationContext());
 
-        myItemizedOverlay = new MyItemizedOverlay(marker, resourceProxy);
+        myItemizedOverlay = new MyItemizedOverlay(currentMarker, resourceProxy);
         mapView.getOverlays().add(myItemizedOverlay);
         myItemizedOverlay.addItem(startPoint, "", "");
 	}
@@ -253,16 +260,43 @@ public class MainActivity extends Activity {
         return success;
 	}
 
+    /** Called to Get Current Location **/
+    private void getCurrentLocation(){
+
+        //Get Current Location
+        gps = new GPSTracker(MainActivity.this);
+
+        // check if GPS enabled
+        if(gps.canGetLocation()){
+
+            double latitude = gps.getLatitude();
+            double longitude = gps.getLongitude();
+
+            startPoint = new GeoPoint(latitude,longitude);
+            txtSearch.setText(latlongToAddress(latitude, longitude));
+            btnClearSearch.setVisibility(View.VISIBLE);
+        }else{
+            // can't get location
+            // GPS or Network is not enabled
+            // Ask user to enable GPS/network in settings
+            gps.showSettingsAlert();
+        }
+    }
+
 	/** Called when Map Button pressed **/
 	public void onMapPress(View v) {
 
-		btnMap.setPressed(true);
-        btnDirection.setPressed(false);
-        btnSettings.setPressed(false);
+		btnMap.setSelected(true);
+        btnDirection.setSelected(false);
+        btnSettings.setSelected(false);
 
         layoutDestination.setVisibility(View.GONE);
+        layoutRouteOptions.setVisibility(View.GONE);
 
-        myItemizedOverlay = new MyItemizedOverlay(marker, resourceProxy);
+        getCurrentLocation();
+
+        myItemizedOverlay = new MyItemizedOverlay(currentMarker, resourceProxy);
+        mapView.getOverlays().clear();
         mapView.getOverlays().add(myItemizedOverlay);
         myItemizedOverlay.addItem(startPoint, "", "");
 		mapController.setCenter(startPoint);
@@ -271,21 +305,24 @@ public class MainActivity extends Activity {
 	/** Called when Direction Button pressed **/
 	public void onDirectionPress(View v) {
 
-		btnDirection.setPressed(true);
-        btnMap.setPressed(false);
-        btnSettings.setPressed(false);
+        if (!isRouteFound){
 
-        layoutDestination.setVisibility(View.VISIBLE);
+            btnDirection.setSelected(true);
+            btnMap.setSelected(false);
+            btnSettings.setSelected(false);
 
-        txtDestination.requestFocus();
+            layoutDestination.setVisibility(View.VISIBLE);
+
+            txtDestination.requestFocus();
+        }
 	}
 
 	/** Called when Settings Button pressed **/
 	public void onSettingsPress(View v) {
 
-		btnSettings.setPressed(true);
-        btnMap.setPressed(false);
-        btnDirection.setPressed(false);
+		btnSettings.setSelected(true);
+        btnMap.setSelected(false);
+        btnDirection.setSelected(false);
 	}
 
 	/** Called when Clear Button on Search Text Field pressed **/
@@ -301,7 +338,7 @@ public class MainActivity extends Activity {
 	public void onContactSearchPress(View v){
 
 		Intent i = new Intent(MainActivity.this,ContactListActivity.class);
-		startActivityForResult(i, 101);
+		startActivityForResult(i, CONTACT_REQUEST);
 	}
 
     /** Called when Clear Button on Search Text Field pressed **/
@@ -317,10 +354,62 @@ public class MainActivity extends Activity {
     public void onContactDestinationPress(View v){
 
         Intent i = new Intent(MainActivity.this,ContactListActivity.class);
-        startActivityForResult(i, 101);
+        startActivityForResult(i, CONTACT_REQUEST);
     }
 
-	/** Called to Geocode contact list address and update Map accordingly. */
+    /** Called when Current Button pressed **/
+    public void onCurrentPress(View v) {
+
+    }
+
+    /** Called when Car Button pressed **/
+    public void onCarPress(View v) {
+
+        if (isRouteFound){
+            new DirectionRequestAsync().execute("routeType=fastest");
+
+            btnCar.setSelected(true);
+            btnBicycle.setSelected(false);
+            btnPedestrian.setSelected(false);
+        }
+    }
+
+    /** Called when Bicycle Button pressed **/
+    public void onBicyclePress(View v) {
+
+        if (isRouteFound){
+            new DirectionRequestAsync().execute("routeType=bicycle");
+
+            btnBicycle.setSelected(true);
+            btnCar.setSelected(false);
+            btnPedestrian.setSelected(false);
+        }
+    }
+
+    /** Called when Pedestrian Button pressed **/
+    public void onPedestrianPress(View v) {
+
+        if (isRouteFound){
+            new DirectionRequestAsync().execute("routeType=pedestrian");
+
+            btnPedestrian.setSelected(true);
+            btnCar.setSelected(false);
+            btnBicycle.setSelected(false);
+        }
+    }
+
+    /** Called when Itinerary Button pressed **/
+    public void onItineraryPress(View v) {
+
+        Intent i = new Intent(this, RouteActivity.class);
+        i.putExtra("ROAD", road);
+        i.putExtra("NODE_ID", roadNodeMarkers.getBubbledItemId());
+        i.putExtra("source",txtSearch.getText().toString());
+        i.putExtra("destination",txtDestination.getText().toString());
+        startActivityForResult(i, ROUTE_REQUEST);
+    }
+
+	/** Called to Geocode contact itinerary address and update Map accordingly. */
 	public class ContactAddressAsync extends AsyncTask<String, Integer, String> {
 
         boolean success;
@@ -331,10 +420,10 @@ public class MainActivity extends Activity {
 		}
 
 		@Override
-		protected String doInBackground(String... params) {
+		protected String doInBackground(String... strings) {
 
 			try {
-				success = addressToLatLong(params[0]);
+				success = addressToLatLong(strings[0]);
 
 			} catch (Exception e) {
 
@@ -355,7 +444,8 @@ public class MainActivity extends Activity {
                 btnClearSearch.setVisibility(View.VISIBLE);
                 btnContactSearch.setVisibility(View.GONE);
 
-                myItemizedOverlay = new MyItemizedOverlay(marker, resourceProxy);
+                myItemizedOverlay = new MyItemizedOverlay(currentMarker, resourceProxy);
+                mapView.getOverlays().clear();
                 mapView.getOverlays().add(myItemizedOverlay);
                 myItemizedOverlay.addItem(searchPoint, "", "");
                 mapController.setCenter(searchPoint);
@@ -368,9 +458,6 @@ public class MainActivity extends Activity {
     /** Called to Fetch Direction Data and update Map accordingly. */
     private class DirectionRequestAsync extends AsyncTask<String, Integer, String>{
 
-        Road road;
-        PathOverlay roadOverlay;
-
         @Override
         protected void onPreExecute() {
             progressDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Searching for Direction", true);
@@ -380,7 +467,8 @@ public class MainActivity extends Activity {
         protected String doInBackground(String... strings) {
 
             RoadManager roadManager = new MapQuestRoadManager();
-            roadManager.addRequestOption("routeType=fastest");
+            //roadManager.addRequestOption("routeType=fastest");
+            roadManager.addRequestOption(strings[0]);
             roadManager.addRequestOption("avoids=Limited%20Access");
 
             ArrayList<GeoPoint> waypoints = new ArrayList<GeoPoint>();
@@ -391,39 +479,68 @@ public class MainActivity extends Activity {
 
             roadOverlay = RoadManager.buildRoadOverlay(road, mapView.getContext());
 
-            return null;
+            return strings[0];
         }
 
         protected void onPostExecute(String result) {
 
             mapView.getOverlays().clear();
             mapView.getOverlays().add(roadOverlay);
+
+            Drawable tempMarker = getResources().getDrawable(R.drawable.source2);
+            Bitmap bitmap = ((BitmapDrawable) tempMarker).getBitmap();
+            sourceMarker = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 50, 50, true));
+
+            tempMarker = getResources().getDrawable(R.drawable.destination2);
+            bitmap = ((BitmapDrawable) tempMarker).getBitmap();
+            destinationMarker = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 50, 50, true));
+
+            myItemizedOverlay = new MyItemizedOverlay(sourceMarker, resourceProxy);
+            mapView.getOverlays().add(myItemizedOverlay);
+            myItemizedOverlay.addItem(startPoint, "", "");
+
+            myItemizedOverlay = new MyItemizedOverlay(destinationMarker, resourceProxy);
+            mapView.getOverlays().add(myItemizedOverlay);
+            myItemizedOverlay.addItem(searchPoint, "", "");
+
             mapView.invalidate();
 
             final ArrayList<ExtendedOverlayItem> roadItems =
                     new ArrayList<ExtendedOverlayItem>();
-            ItemizedOverlayWithBubble<ExtendedOverlayItem> roadNodes =
+            roadNodeMarkers =
                     new ItemizedOverlayWithBubble<ExtendedOverlayItem>(MainActivity.this, roadItems, mapView);
-            mapView.getOverlays().add(roadNodes);
+            mapView.getOverlays().add(roadNodeMarkers);
 
             Drawable marker = getResources().getDrawable(R.drawable.marker_node);
-            Drawable icon = getResources().getDrawable(R.drawable.moreinfo_arrow);
+            //Drawable icon = getResources().getDrawable(R.drawable.moreinfo_arrow);
 
             for (int i=0; i<road.mNodes.size(); i++){
                 RoadNode node = road.mNodes.get(i);
                 ExtendedOverlayItem nodeMarker = new ExtendedOverlayItem("Step "+i, "", node.mLocation, MainActivity.this);
                 nodeMarker.setMarkerHotspot(OverlayItem.HotspotPlace.CENTER);
                 nodeMarker.setMarker(marker);
-                roadNodes.addItem(nodeMarker);
+                roadNodeMarkers.addItem(nodeMarker);
                 nodeMarker.setDescription(node.mInstructions);
                 nodeMarker.setSubDescription(road.getLengthDurationText(node.mLength, node.mDuration));
-                nodeMarker.setImage(icon);
+                //nodeMarker.setImage(icon);
             }
 
             progressDialog.dismiss();
 
             btnClearDestination.setVisibility(View.VISIBLE);
             btnContactDestination.setVisibility(View.GONE);
+
+            layoutRouteOptions.setVisibility(View.VISIBLE);
+
+            if (result.equals("routeType=fastest")){
+                btnCar.setSelected(true);
+            } else if (result.equals("routeType=bicycle")){
+                btnBicycle.setSelected(true);
+            } else {
+                btnPedestrian.setSelected(true);
+            }
+
+            isRouteFound = true;
         }
     }
 
@@ -432,13 +549,23 @@ public class MainActivity extends Activity {
 
 		super.onActivityResult(requestCode, resultCode, data);
 
-		if(requestCode == 101){
-			if (resultCode == RESULT_OK) {
-				String contactAddress = data.getStringExtra("Address");
-
-				new ContactAddressAsync().execute(contactAddress);
-			}
-		}
+        switch (requestCode) {
+            case ROUTE_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    int nodeId = data.getIntExtra("NODE_ID", 0);
+                    mapView.getController().setCenter(road.mNodes.get(nodeId).mLocation);
+                    roadNodeMarkers.showBubbleOnItem(nodeId, mapView, true);
+                }
+                break;
+            case CONTACT_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    String contactAddress = data.getStringExtra("Address");
+                    new ContactAddressAsync().execute(contactAddress);
+                }
+                break;
+            default:
+                break;
+        }
 	}
 
 	/** Called when activity resumed. */
@@ -446,7 +573,5 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 
 		super.onResume();
-
-		btnMap.setPressed(true);
 	}
 }

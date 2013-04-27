@@ -74,7 +74,7 @@ public class ContactDB {
 		}
 	}
 
-	/** Called to traverse through the Contact API and populate list with phone contacts. */
+	/** Called to traverse through the Contact API and populate itinerary with phone contacts. */
 	public void phoneBookEntry(){
 		try {
 			ContentResolver cr = this.context.getContentResolver();
@@ -122,7 +122,7 @@ public class ContactDB {
 		}
 	}
 
-	/** Called to traverse through the Contact API and populate list with address contacts. */
+	/** Called to traverse through the Contact API and populate itinerary with address contacts. */
 	public void addressBookEntry(){
 		try {
 			ContentResolver cr = this.context.getContentResolver();
