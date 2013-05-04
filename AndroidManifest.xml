@@ -38,6 +38,11 @@
             android:name="MainActivity" >
         </activity>
         <activity
+                android:name="SettingsActivity"
+                android:configChanges="keyboardHidden|orientation"
+                android:theme="@android:style/Theme.Dialog" >
+        </activity>
+        <activity
                 android:name="ContactListActivity"
                 android:configChanges="keyboardHidden|orientation"
                 android:theme="@android:style/Theme.Dialog" >

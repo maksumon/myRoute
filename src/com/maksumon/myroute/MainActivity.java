@@ -3,6 +3,7 @@ package com.maksumon.myroute;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
@@ -11,6 +12,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -60,11 +62,19 @@ public class MainActivity extends Activity {
 
 	Button btnMap, btnDirection, btnSettings;
 	Button btnClearSearch, btnContactSearch, btnClearDestination, btnContactDestination;
+    Button btnHome;
     Button btnCurrent, btnCar, btnBicycle, btnPedestrian, btnItinerary;
 
     RelativeLayout layoutSearch;
     RelativeLayout layoutDestination;
     LinearLayout layoutRouteOptions;
+
+    // Settings Preferences
+    SharedPreferences preferences;
+
+    boolean highways;
+    boolean tolls;
+    String homeAddress;
 
     ProgressDialog progressDialog;
 
@@ -75,7 +85,8 @@ public class MainActivity extends Activity {
     boolean isRouteFound = false;
 
     protected static final int ROUTE_REQUEST = 1;
-    protected static final int CONTACT_REQUEST = 2;
+    protected static final int CONTACT_SEARCH_REQUEST = 2;
+    protected static final int CONTACT_ROUTE_REQUEST = 3;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -142,6 +153,8 @@ public class MainActivity extends Activity {
         btnClearDestination = (Button)findViewById(R.id.btnClearDestination);
         btnContactDestination = (Button)findViewById(R.id.btnContactDestination);
 
+        btnHome = (Button) findViewById(R.id.btnHome);
+
         btnCurrent = (Button)findViewById(R.id.btnCurrent);
         btnCar = (Button)findViewById(R.id.btnCar);
         btnBicycle = (Button)findViewById(R.id.btnBicycle);
@@ -149,6 +162,11 @@ public class MainActivity extends Activity {
         btnItinerary = (Button)findViewById(R.id.btnItinerary);
 
 		btnMap.setSelected(true);
+
+        if (txtSearch.getText().toString().isEmpty()){
+            btnClearSearch.setVisibility(View.GONE);
+            btnContactSearch.setVisibility(View.VISIBLE);
+        }
 
 		//startPoint = new GeoPoint(23.822823,90.36256);
 		//startPoint = new GeoPoint(34.123581,-118.146332);
@@ -283,6 +301,15 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Called to get the xml/preferences.xml preferences. */
+    private void getPreferences() {
+        preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+
+        highways = preferences.getBoolean("highways", false);
+        tolls = preferences.getBoolean("tolls", false);
+        homeAddress = preferences.getString("homeAddress", "");
+    }
+
 	/** Called when Map Button pressed **/
 	public void onMapPress(View v) {
 
@@ -314,16 +341,49 @@ public class MainActivity extends Activity {
             layoutDestination.setVisibility(View.VISIBLE);
 
             txtDestination.requestFocus();
+
+            if (txtDestination.getText().toString().isEmpty()){
+                btnClearDestination.setVisibility(View.GONE);
+                btnContactDestination.setVisibility(View.VISIBLE);
+            }
         }
 	}
 
 	/** Called when Settings Button pressed **/
 	public void onSettingsPress(View v) {
 
-		btnSettings.setSelected(true);
-        btnMap.setSelected(false);
-        btnDirection.setSelected(false);
+//		btnSettings.setSelected(true);
+//        btnMap.setSelected(false);
+//        btnDirection.setSelected(false);
+
+        Intent i = new Intent(MainActivity.this, SettingsActivity.class);
+        startActivity(i);
 	}
+
+    /** Called when Settings Button pressed **/
+    public void onHomePress(View v) {
+
+        if (!isRouteFound){
+            if (homeAddress.isEmpty()){
+                Toast.makeText(this,"Please set your home address in application settings",Toast.LENGTH_SHORT).show();
+            } else {
+                if (addressToLatLong(homeAddress)){
+                    btnClearDestination.setVisibility(View.VISIBLE);
+                    btnContactDestination.setVisibility(View.GONE);
+
+                    txtDestination.setText(address.getAddressLine(0) +", "+
+                            address.getLocality() +", "+
+                            address.getAdminArea() +", "+
+                            address.getCountryCode());
+
+                    new DirectionRequestAsync().execute("routeType=fastest");
+                } else {
+                    Toast.makeText(this,"Invalid Address or Request Out of Service",Toast.LENGTH_SHORT).show();
+                }
+            }
+
+        }
+    }
 
 	/** Called when Clear Button on Search Text Field pressed **/
 	public void onClearSearchPress(View v){
@@ -338,7 +398,7 @@ public class MainActivity extends Activity {
 	public void onContactSearchPress(View v){
 
 		Intent i = new Intent(MainActivity.this,ContactListActivity.class);
-		startActivityForResult(i, CONTACT_REQUEST);
+		startActivityForResult(i, CONTACT_SEARCH_REQUEST);
 	}
 
     /** Called when Clear Button on Search Text Field pressed **/
@@ -354,7 +414,7 @@ public class MainActivity extends Activity {
     public void onContactDestinationPress(View v){
 
         Intent i = new Intent(MainActivity.this,ContactListActivity.class);
-        startActivityForResult(i, CONTACT_REQUEST);
+        startActivityForResult(i, CONTACT_ROUTE_REQUEST);
     }
 
     /** Called when Current Button pressed **/
@@ -409,7 +469,7 @@ public class MainActivity extends Activity {
         startActivityForResult(i, ROUTE_REQUEST);
     }
 
-	/** Called to Geocode contact itinerary address and update Map accordingly. */
+	/** Called to Geocode contact address and update Map accordingly. */
 	public class ContactAddressAsync extends AsyncTask<String, Integer, String> {
 
         boolean success;
@@ -455,6 +515,51 @@ public class MainActivity extends Activity {
         }
 	}
 
+    /** Called to Geocode contact address and request accordingly. */
+    public class ContactRouteAsync extends AsyncTask<String, Integer, String> {
+
+        boolean success;
+
+        @Override
+        protected void onPreExecute() {
+            success = false;
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+
+            try {
+                success = addressToLatLong(strings[0]);
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        protected void onPostExecute(String result) {
+            if(success){
+
+                txtSearch.clearFocus();
+                txtDestination.clearFocus();
+
+                btnClearDestination.setVisibility(View.VISIBLE);
+                btnContactDestination.setVisibility(View.GONE);
+
+                txtDestination.setText(address.getAddressLine(0) +", "+
+                        address.getLocality() +", "+
+                        address.getAdminArea() +", "+
+                        address.getCountryCode());
+
+                new DirectionRequestAsync().execute("routeType=fastest");
+
+            } else {
+                Toast.makeText(MainActivity.this,"Unable to Locate\nPlease try again",Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     /** Called to Fetch Direction Data and update Map accordingly. */
     private class DirectionRequestAsync extends AsyncTask<String, Integer, String>{
 
@@ -467,9 +572,15 @@ public class MainActivity extends Activity {
         protected String doInBackground(String... strings) {
 
             RoadManager roadManager = new MapQuestRoadManager();
-            //roadManager.addRequestOption("routeType=fastest");
             roadManager.addRequestOption(strings[0]);
-            roadManager.addRequestOption("avoids=Limited%20Access");
+
+            if (highways){
+                roadManager.addRequestOption("avoids=Limited%20Access");
+            }
+
+            if (tolls){
+                roadManager.addRequestOption("avoids=Toll%20Road");
+            }
 
             ArrayList<GeoPoint> waypoints = new ArrayList<GeoPoint>();
             waypoints.add(startPoint);
@@ -540,6 +651,8 @@ public class MainActivity extends Activity {
                 btnPedestrian.setSelected(true);
             }
 
+            btnHome.setVisibility(View.GONE);
+
             isRouteFound = true;
         }
     }
@@ -557,10 +670,16 @@ public class MainActivity extends Activity {
                     roadNodeMarkers.showBubbleOnItem(nodeId, mapView, true);
                 }
                 break;
-            case CONTACT_REQUEST:
+            case CONTACT_SEARCH_REQUEST:
                 if (resultCode == RESULT_OK) {
                     String contactAddress = data.getStringExtra("Address");
                     new ContactAddressAsync().execute(contactAddress);
+                }
+                break;
+            case CONTACT_ROUTE_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    String contactAddress = data.getStringExtra("Address");
+                    new ContactRouteAsync().execute(contactAddress);
                 }
                 break;
             default:
@@ -573,5 +692,7 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 
 		super.onResume();
+
+        getPreferences();
 	}
 }

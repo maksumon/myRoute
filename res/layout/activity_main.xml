@@ -17,6 +17,9 @@
             android:id="@+id/layoutDestination"
             android:visibility="gone">
     </include>
+    <include layout="@layout/layout_home"
+             android:id="@+id/layoutHome">
+    </include>
 
     <include layout="@layout/layout_route_options"
              android:id="@+id/layoutRouteOptions"

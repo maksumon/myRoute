@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+    <LinearLayout
+            android:id="@+id/layoutTopSettings"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:orientation="horizontal"
+            android:visibility="visible"
+            android:layout_marginBottom="5dp" >
+
+        <TextView
+                android:id="@+id/txtSettingsTitle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="0.90"
+                android:gravity="center_vertical"
+                android:text="TextView"
+                android:textColor="@color/green"
+                android:textSize="20dp"
+                android:textStyle="bold" />
+
+        <Button
+                android:id="@+id/btnSettingsClose"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="5dip"
+                android:background="@drawable/cedoclose"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" >
+        </Button>
+    </LinearLayout>
+
+    <ListView
+            android:id="@android:id/list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@id/layoutTopSettings" >
+    </ListView>
+
+</RelativeLayout>

@@ -26,8 +26,8 @@ import android.widget.TextView;
  */
 
 public class RouteActivity extends Activity {
-	
-	@Override public void onCreate(Bundle savedInstanceState) {
+
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.items_list);
 
@@ -53,10 +53,10 @@ public class RouteActivity extends Activity {
 
         list.setOnItemClickListener(new OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> arg0, View view, int position, long index) {
-				Intent intent = new Intent();
-	    		intent.putExtra("NODE_ID", position);
-				setResult(RESULT_OK, intent);
-				finish();
+                Intent intent = new Intent();
+                intent.putExtra("NODE_ID", position);
+                setResult(RESULT_OK, intent);
+                finish();
             }
         });
 
@@ -69,25 +69,25 @@ class RoadNodesAdapter extends BaseAdapter implements OnClickListener {
     private Context mContext;
     private Road mRoad;
     TypedArray iconIds;
-    
+
     public RoadNodesAdapter(Context context, Road road) {
         mContext = context;
         mRoad = road;
-		iconIds = mContext.getResources().obtainTypedArray(R.array.direction_icons);
+        iconIds = mContext.getResources().obtainTypedArray(R.array.direction_icons);
     }
 
     @Override public int getCount() {
-    	if (mRoad == null || mRoad.mNodes == null)
-    		return 0;
-    	else
-    		return mRoad.mNodes.size();
+        if (mRoad == null || mRoad.mNodes == null)
+            return 0;
+        else
+            return mRoad.mNodes.size();
     }
 
     @Override public Object getItem(int position) {
-    	if (mRoad == null || mRoad.mNodes == null)
-    		return null;
-    	else
-    		return mRoad.mNodes.get(position);
+        if (mRoad == null || mRoad.mNodes == null)
+            return null;
+        else
+            return mRoad.mNodes.get(position);
     }
 
     @Override public long getItemId(int position) {
@@ -106,15 +106,15 @@ class RoadNodesAdapter extends BaseAdapter implements OnClickListener {
         tvTitle.setText("" + (position+1) + ". " + instructions);
         TextView tvDetails = (TextView)convertView.findViewById(R.id.details);
         tvDetails.setText(mRoad.getLengthDurationText(entry.mLength, entry.mDuration));
-		int iconId = iconIds.getResourceId(entry.mManeuverType, R.drawable.ic_empty);
-   		Drawable icon = mContext.getResources().getDrawable(iconId);
-		ImageView ivManeuver = (ImageView)convertView.findViewById(R.id.thumbnail);
-   		ivManeuver.setImageDrawable(icon);
+        int iconId = iconIds.getResourceId(entry.mManeuverType, R.drawable.ic_empty);
+        Drawable icon = mContext.getResources().getDrawable(iconId);
+        ImageView ivManeuver = (ImageView)convertView.findViewById(R.id.thumbnail);
+        ivManeuver.setImageDrawable(icon);
         return convertView;
     }
 
-	@Override public void onClick(View arg0) {
-		//nothing to do.
-	}
-    
+    @Override public void onClick(View arg0) {
+        //nothing to do.
+    }
+
 }
