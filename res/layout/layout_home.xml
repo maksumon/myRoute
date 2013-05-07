@@ -12,7 +12,7 @@
             android:layout_margin="5dp"
             android:layout_alignParentRight="true"
             android:background="@drawable/home"
-            android:visibility="visible"
+            android:visibility="gone"
             android:onClick="onHomePress"/>
 
 </RelativeLayout>

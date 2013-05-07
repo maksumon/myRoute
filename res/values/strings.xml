@@ -4,11 +4,17 @@
     <string name="app_name">myRoute</string>
     <string name="searchPlaceholder">Search for Address</string>
     <string name="destinationPlaceholder">Tpye Address to Get Direction</string>
-    <string name="map">Map</string>
+    <string name="search">Search</string>
     <string name="direction">Direction</string>
     <string name="settings">Settings</string>
     <string name="description">Turn-by-turn Navigation Applicaiton</string>
     <string name="copyright">&#169; MAKSumon</string>
     <string name="licenses">Using OSMDroid &#38; OSMBonusPack</string>
+    <string name="startDriving">Start Driving</string>
+    <string name="startRiding">Start Riding</string>
+    <string name="startWalking">Start Walking</string>
+    <string name="pauseDriving">Pause Driving</string>
+    <string name="pauseRiding">Pause Riding</string>
+    <string name="pauseWalking">Pause Walking</string>
 
 </resources>

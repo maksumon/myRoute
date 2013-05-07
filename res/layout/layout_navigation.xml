@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout   xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#44000000">
+
+
+    <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_gravity="center_horizontal">
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/startDriving"
+                android:id="@+id/btnNavigation"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"/>
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/btnNavigation"
+                android:text="Remain:"
+                android:id="@+id/txtRemain"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_alignBottom="@+id/btnNavigation"
+                android:layout_alignTop="@+id/btnNavigation" android:textColor="@color/black"/>
+
+    </RelativeLayout>
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Instruction"
+            android:id="@+id/txtInstruction"
+            android:layout_gravity="center"
+            android:textStyle="bold" android:textColor="@color/black"/>
+</LinearLayout>

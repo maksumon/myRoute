@@ -57,17 +57,19 @@ public class MainActivity extends Activity {
 
     private Address address;
 
-	AutoCompleteTextView txtSearch;
-    AutoCompleteTextView txtDestination;
+	AutoCompleteTextView txtSearch, txtDestination;
 
 	Button btnMap, btnDirection, btnSettings;
 	Button btnClearSearch, btnContactSearch, btnClearDestination, btnContactDestination;
-    Button btnHome;
+    Button btnHome, btnNavigation;
     Button btnCurrent, btnCar, btnBicycle, btnPedestrian, btnItinerary;
 
     RelativeLayout layoutSearch;
     RelativeLayout layoutDestination;
     LinearLayout layoutRouteOptions;
+    LinearLayout layoutNavigation;
+
+    TextView txtRemain, txtInstruction;
 
     // Settings Preferences
     SharedPreferences preferences;
@@ -98,6 +100,7 @@ public class MainActivity extends Activity {
         layoutSearch = (RelativeLayout)findViewById(R.id.layoutSearch);
         layoutDestination = (RelativeLayout)findViewById(R.id.layoutDestination);
         layoutRouteOptions = (LinearLayout)findViewById(R.id.layoutRouteOptions);
+        layoutNavigation = (LinearLayout)findViewById(R.id.layoutNavigation);
 
         Typeface typeface = Typeface.createFromAsset(getAssets(),"Fondamento-Regular.ttf");
 
@@ -153,13 +156,17 @@ public class MainActivity extends Activity {
         btnClearDestination = (Button)findViewById(R.id.btnClearDestination);
         btnContactDestination = (Button)findViewById(R.id.btnContactDestination);
 
-        btnHome = (Button) findViewById(R.id.btnHome);
+        btnHome = (Button)findViewById(R.id.btnHome);
+        btnNavigation = (Button)findViewById(R.id.btnNavigation);
 
         btnCurrent = (Button)findViewById(R.id.btnCurrent);
         btnCar = (Button)findViewById(R.id.btnCar);
         btnBicycle = (Button)findViewById(R.id.btnBicycle);
         btnPedestrian = (Button)findViewById(R.id.btnPedestrian);
         btnItinerary = (Button)findViewById(R.id.btnItinerary);
+
+        txtRemain = (TextView)findViewById(R.id.txtRemain);
+        txtInstruction = (TextView)findViewById(R.id.txtInstruction);
 
 		btnMap.setSelected(true);
 
@@ -317,6 +324,8 @@ public class MainActivity extends Activity {
         btnDirection.setSelected(false);
         btnSettings.setSelected(false);
 
+        btnHome.setVisibility(View.GONE);
+
         layoutDestination.setVisibility(View.GONE);
         layoutRouteOptions.setVisibility(View.GONE);
 
@@ -338,6 +347,8 @@ public class MainActivity extends Activity {
             btnMap.setSelected(false);
             btnSettings.setSelected(false);
 
+            btnHome.setVisibility(View.VISIBLE);
+
             layoutDestination.setVisibility(View.VISIBLE);
 
             txtDestination.requestFocus();
@@ -351,10 +362,6 @@ public class MainActivity extends Activity {
 
 	/** Called when Settings Button pressed **/
 	public void onSettingsPress(View v) {
-
-//		btnSettings.setSelected(true);
-//        btnMap.setSelected(false);
-//        btnDirection.setSelected(false);
 
         Intent i = new Intent(MainActivity.this, SettingsActivity.class);
         startActivity(i);
@@ -381,7 +388,6 @@ public class MainActivity extends Activity {
                     Toast.makeText(this,"Invalid Address or Request Out of Service",Toast.LENGTH_SHORT).show();
                 }
             }
-
         }
     }
 
@@ -642,16 +648,26 @@ public class MainActivity extends Activity {
             btnContactDestination.setVisibility(View.GONE);
 
             layoutRouteOptions.setVisibility(View.VISIBLE);
+            layoutNavigation.setVisibility(View.VISIBLE);
+
+            layoutSearch.setVisibility(View.GONE);
+            layoutDestination.setVisibility(View.GONE);
+
+            btnHome.setVisibility(View.GONE);
 
             if (result.equals("routeType=fastest")){
                 btnCar.setSelected(true);
+                btnNavigation.setText(getResources().getString(R.string.startDriving));
             } else if (result.equals("routeType=bicycle")){
                 btnBicycle.setSelected(true);
+                btnNavigation.setText(getResources().getString(R.string.startRiding));
             } else {
                 btnPedestrian.setSelected(true);
+                btnNavigation.setText(getResources().getString(R.string.startWalking));
             }
 
-            btnHome.setVisibility(View.GONE);
+            txtRemain.setText("Remain: "+ Utility.roundNumbers(road.mLength) + " KMs");
+            txtInstruction.setText(road.mNodes.get(0).mInstructions);
 
             isRouteFound = true;
         }
