@@ -6,8 +6,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:background="#44000000"
-        android:gravity="right"
-        android:weightSum="10" >
+        android:gravity="right" >
 
     <AutoCompleteTextView
             android:id="@+id/txtSearch"
@@ -48,4 +47,5 @@
                 android:paddingTop="1dp"
                 android:visibility="visible" />
     </LinearLayout>
+
 </RelativeLayout>

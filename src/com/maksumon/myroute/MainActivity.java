@@ -1,7 +1,9 @@
 package com.maksumon.myroute;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -21,6 +23,8 @@ import android.widget.*;
 import android.widget.TextView.OnEditorActionListener;
 import org.osmdroid.DefaultResourceProxyImpl;
 import org.osmdroid.ResourceProxy;
+import org.osmdroid.bonuspack.location.NominatimPOIProvider;
+import org.osmdroid.bonuspack.location.POI;
 import org.osmdroid.bonuspack.overlays.ExtendedOverlayItem;
 import org.osmdroid.bonuspack.overlays.ItemizedOverlayWithBubble;
 import org.osmdroid.bonuspack.routing.MapQuestRoadManager;
@@ -29,6 +33,7 @@ import org.osmdroid.bonuspack.routing.RoadManager;
 import org.osmdroid.bonuspack.routing.RoadNode;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.tileprovider.util.CloudmadeUtil;
+import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapController;
 import org.osmdroid.views.MapView;
@@ -68,6 +73,7 @@ public class MainActivity extends Activity {
     RelativeLayout layoutDestination;
     LinearLayout layoutRouteOptions;
     LinearLayout layoutNavigation;
+    LinearLayout layoutPOIs;
 
     TextView txtRemain, txtInstruction;
 
@@ -84,11 +90,16 @@ public class MainActivity extends Activity {
     protected PathOverlay roadOverlay;
     protected ItemizedOverlayWithBubble<ExtendedOverlayItem> roadNodeMarkers;
 
+    ArrayList<POI> mPOIs;
+    ItemizedOverlayWithBubble<ExtendedOverlayItem> poiMarkers;
+
     boolean isRouteFound = false;
+    boolean isSearchPressed = false;
 
     protected static final int ROUTE_REQUEST = 1;
     protected static final int CONTACT_SEARCH_REQUEST = 2;
     protected static final int CONTACT_ROUTE_REQUEST = 3;
+    protected static final int POIS_REQUEST = 4;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +112,7 @@ public class MainActivity extends Activity {
         layoutDestination = (RelativeLayout)findViewById(R.id.layoutDestination);
         layoutRouteOptions = (LinearLayout)findViewById(R.id.layoutRouteOptions);
         layoutNavigation = (LinearLayout)findViewById(R.id.layoutNavigation);
+        layoutPOIs = (LinearLayout)findViewById(R.id.layoutPOIs);
 
         Typeface typeface = Typeface.createFromAsset(getAssets(),"Fondamento-Regular.ttf");
 
@@ -211,6 +223,11 @@ public class MainActivity extends Activity {
         myItemizedOverlay = new MyItemizedOverlay(currentMarker, resourceProxy);
         mapView.getOverlays().add(myItemizedOverlay);
         myItemizedOverlay.addItem(startPoint, "", "");
+
+        //POI markers:
+        final ArrayList<ExtendedOverlayItem> poiItems = new ArrayList<ExtendedOverlayItem>();
+        poiMarkers = new ItemizedOverlayWithBubble<ExtendedOverlayItem>(this,
+                poiItems, mapView, new POIInfoWindow(mapView));
 	}
 
 	final TextWatcher textChecker = new TextWatcher() {
@@ -308,6 +325,63 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Called to create and show Alert Dialog **/
+
+    private void customAlertDialog(String title, String message, String positiveButton, String negativeButton){
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this.getApplicationContext());
+
+        // set title
+        alertDialogBuilder.setTitle(title);
+
+        // set dialog message
+        alertDialogBuilder
+                .setMessage(message)
+                .setCancelable(false)
+                .setPositiveButton(positiveButton, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, close
+                        // current activity
+                        MainActivity.this.finish();
+                    }
+                })
+                .setNegativeButton(negativeButton, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, just close
+                        // the dialog box and do nothing
+                        dialog.cancel();
+                    }
+                });
+
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // show it
+        alertDialog.show();
+    }
+
+    void updateUIWithPOI(ArrayList<POI> pois){
+        if (pois != null){
+
+            for (POI poi:pois){
+                ExtendedOverlayItem poiMarker = new ExtendedOverlayItem(
+                        poi.mType, poi.mDescription,
+                        poi.mLocation, this);
+                Drawable marker = null;
+                if (poi.mServiceId == POI.POI_SERVICE_NOMINATIM){
+                    marker = getResources().getDrawable(R.drawable.marker_poi_default);
+                }
+                poiMarker.setMarker(marker);
+                poiMarker.setMarkerHotspot(OverlayItem.HotspotPlace.CENTER);
+                //thumbnail loading moved in POIInfoWindow.onOpen for better performances.
+                poiMarker.setRelatedObject(poi);
+                poiMarkers.addItem(poiMarker);
+            }
+        }
+        mapView.getOverlays().add(poiMarkers);
+        mapView.invalidate();
+    }
+
     /** Called to get the xml/preferences.xml preferences. */
     private void getPreferences() {
         preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -324,15 +398,24 @@ public class MainActivity extends Activity {
         btnDirection.setSelected(false);
         btnSettings.setSelected(false);
 
+        isSearchPressed = true;
+
         btnHome.setVisibility(View.GONE);
 
+        layoutSearch.setVisibility(View.VISIBLE);
         layoutDestination.setVisibility(View.GONE);
         layoutRouteOptions.setVisibility(View.GONE);
+        layoutNavigation.setVisibility(View.GONE);
+        layoutPOIs.setVisibility(View.VISIBLE);
 
         getCurrentLocation();
 
         myItemizedOverlay = new MyItemizedOverlay(currentMarker, resourceProxy);
-        mapView.getOverlays().clear();
+
+        if (!isRouteFound){
+            mapView.getOverlays().clear();
+        }
+
         mapView.getOverlays().add(myItemizedOverlay);
         myItemizedOverlay.addItem(startPoint, "", "");
 		mapController.setCenter(startPoint);
@@ -342,7 +425,6 @@ public class MainActivity extends Activity {
 	public void onDirectionPress(View v) {
 
         if (!isRouteFound){
-
             btnDirection.setSelected(true);
             btnMap.setSelected(false);
             btnSettings.setSelected(false);
@@ -357,7 +439,19 @@ public class MainActivity extends Activity {
                 btnClearDestination.setVisibility(View.GONE);
                 btnContactDestination.setVisibility(View.VISIBLE);
             }
+        } else if (isSearchPressed && isRouteFound){
+            btnDirection.setSelected(true);
+            btnMap.setSelected(false);
+            btnSettings.setSelected(false);
+
+            isSearchPressed = false;
+
+            layoutSearch.setVisibility(View.GONE);
+            layoutRouteOptions.setVisibility(View.VISIBLE);
+            layoutNavigation.setVisibility(View.VISIBLE);
         }
+
+        layoutPOIs.setVisibility(View.GONE);
 	}
 
 	/** Called when Settings Button pressed **/
@@ -421,6 +515,44 @@ public class MainActivity extends Activity {
 
         Intent i = new Intent(MainActivity.this,ContactListActivity.class);
         startActivityForResult(i, CONTACT_ROUTE_REQUEST);
+    }
+
+    /** Called to show POIs on Map **/
+    public void  onPOIPress(View v){
+
+        switch (v.getId()){
+
+            case R.id.poiCafe:
+                new POITask().execute("Cafe");
+                break;
+            case R.id.poiFastFood:
+                new POITask().execute("Fast Food");
+                break;
+            case R.id.poiFuel:
+                new POITask().execute("Fuel");
+                break;
+            case R.id.poiHospital:
+                new POITask().execute("Hospital");
+                break;
+            case R.id.poiHotel:
+                new POITask().execute("Hotel");
+                break;
+            case R.id.poiPolice:
+                new POITask().execute("Police");
+                break;
+            case R.id.poiRestaurant:
+                new POITask().execute("Restaurant");
+                break;
+            case R.id.poiSchool:
+                new POITask().execute("School");
+                break;
+            case R.id.poiATM:
+                new POITask().execute("ATM");
+                break;
+            case R.id.poiSupermarket:
+                new POITask().execute("Supermarket");
+                break;
+        }
     }
 
     /** Called when Current Button pressed **/
@@ -511,7 +643,11 @@ public class MainActivity extends Activity {
                 btnContactSearch.setVisibility(View.GONE);
 
                 myItemizedOverlay = new MyItemizedOverlay(currentMarker, resourceProxy);
-                mapView.getOverlays().clear();
+
+                if (!isRouteFound){
+                    mapView.getOverlays().clear();
+                }
+
                 mapView.getOverlays().add(myItemizedOverlay);
                 myItemizedOverlay.addItem(searchPoint, "", "");
                 mapController.setCenter(searchPoint);
@@ -670,6 +806,45 @@ public class MainActivity extends Activity {
             txtInstruction.setText(road.mNodes.get(0).mInstructions);
 
             isRouteFound = true;
+        }
+    }
+
+    /** Called to fetch and display POIs on Map **/
+    private class POITask extends AsyncTask<Object, Void, ArrayList<POI>> {
+        String mTag;
+
+        protected void onPreExecute(){
+            poiMarkers.removeAllItems();
+        }
+
+        protected ArrayList<POI> doInBackground(Object... params) {
+            mTag = (String)params[0];
+
+            if (mTag == null || mTag.equals("")){
+                return null;
+            } else {
+                NominatimPOIProvider poiProvider = new NominatimPOIProvider();
+                poiProvider.setService(NominatimPOIProvider.MAPQUEST_POI_SERVICE);
+                ArrayList<POI> pois;
+                if (!isRouteFound){
+                    BoundingBoxE6 bb = mapView.getBoundingBox();
+                    pois = poiProvider.getPOIInside(bb, mTag, 100);
+                } else {
+                    pois = poiProvider.getPOIAlong(road.getRouteLow(), mTag, 100, 2.0);
+                }
+                return pois;
+            }
+        }
+        protected void onPostExecute(ArrayList<POI> pois) {
+            mPOIs = pois;
+            if (mTag.equals("")){
+                //no search, no message
+            } else if (mPOIs == null){
+                Toast.makeText(getApplicationContext(), "Technical issue when getting "+mTag+ " POI.", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(getApplicationContext(), ""+mPOIs.size()+" "+mTag+ " entries found", Toast.LENGTH_LONG).show();
+            }
+            updateUIWithPOI(mPOIs);
         }
     }
 
