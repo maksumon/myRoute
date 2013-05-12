@@ -522,6 +522,9 @@ public class MainActivity extends Activity {
 
         switch (v.getId()){
 
+            case R.id.poiATM:
+                new POITask().execute("ATM");
+                break;
             case R.id.poiCafe:
                 new POITask().execute("Cafe");
                 break;
@@ -545,9 +548,6 @@ public class MainActivity extends Activity {
                 break;
             case R.id.poiSchool:
                 new POITask().execute("School");
-                break;
-            case R.id.poiATM:
-                new POITask().execute("ATM");
                 break;
             case R.id.poiSupermarket:
                 new POITask().execute("Supermarket");
@@ -803,7 +803,7 @@ public class MainActivity extends Activity {
             }
 
             txtRemain.setText("Remain: "+ Utility.roundNumbers(road.mLength) + " KMs");
-            txtInstruction.setText(road.mNodes.get(0).mInstructions);
+            txtInstruction.setText(road.mNodes.get(0).mInstructions.toString());
 
             isRouteFound = true;
         }

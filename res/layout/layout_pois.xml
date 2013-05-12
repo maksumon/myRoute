@@ -17,73 +17,83 @@
                 android:orientation="horizontal" >
 
             <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Fast food"
-                    android:id="@+id/poiFastFood"
-                    android:onClick="onPOIPress"/>
-
-            <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Hospital"
-                    android:id="@+id/poiHospital"
-                    android:onClick="onPOIPress"/>
-
-            <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Cafe"
-                    android:id="@+id/poiCafe"
-                    android:onClick="onPOIPress"/>
-
-            <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Police"
-                    android:id="@+id/poiPolice"
-                    android:onClick="onPOIPress"/>
-
-            <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Restaurant"
-                    android:id="@+id/poiRestaurant"
-                    android:onClick="onPOIPress"/>
-
-            <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Hotel"
-                    android:id="@+id/poiHotel"
-                    android:onClick="onPOIPress"/>
-
-            <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Supermarket"
-                    android:id="@+id/poiSupermarket"
-                    android:onClick="onPOIPress"/>
-
-            <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Fuel"
-                    android:id="@+id/poiFuel"
-                    android:onClick="onPOIPress"/>
-
-            <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="ATM"
+                    android:background="@drawable/poi_atm"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
                     android:id="@+id/poiATM"
                     android:onClick="onPOIPress"/>
 
             <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="School"
+                    android:background="@drawable/poi_cafe"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:id="@+id/poiCafe"
+                    android:onClick="onPOIPress"/>
+
+            <Button
+                    android:background="@drawable/poi_fastfood"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:id="@+id/poiFastFood"
+                    android:onClick="onPOIPress"/>
+
+            <Button
+                    android:background="@drawable/poi_fuel"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:id="@+id/poiFuel"
+                    android:onClick="onPOIPress"/>
+
+            <Button
+                    android:background="@drawable/poi_hospital"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:id="@+id/poiHospital"
+                    android:onClick="onPOIPress"/>
+
+            <Button
+                    android:background="@drawable/poi_hotel"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:id="@+id/poiHotel"
+                    android:onClick="onPOIPress"/>
+
+            <Button
+                    android:background="@drawable/poi_police"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:id="@+id/poiPolice"
+                    android:onClick="onPOIPress"/>
+
+            <Button
+                    android:background="@drawable/poi_restaurant"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:id="@+id/poiRestaurant"
+                    android:onClick="onPOIPress"/>
+
+            <Button
+                    android:background="@drawable/poi_school"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
                     android:id="@+id/poiSchool"
+                    android:onClick="onPOIPress"/>
+
+            <Button
+                    android:background="@drawable/poi_supermarket"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:id="@+id/poiSupermarket"
                     android:onClick="onPOIPress"/>
 
         </LinearLayout>
