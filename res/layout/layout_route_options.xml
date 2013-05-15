@@ -44,6 +44,15 @@
     </Button>
 
     <Button
+            android:id="@+id/btnRefresh"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="5dp"
+            android:background="@drawable/refresh"
+            android:onClick="onRefreshPress">
+    </Button>
+
+    <Button
             android:id="@+id/btnItinerary"
             android:layout_width="40dp"
             android:layout_height="40dp"

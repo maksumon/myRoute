@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
 	Button btnMap, btnDirection, btnSettings;
 	Button btnClearSearch, btnContactSearch, btnClearDestination, btnContactDestination;
     Button btnHome, btnNavigation;
-    Button btnCurrent, btnCar, btnBicycle, btnPedestrian, btnItinerary;
+    Button btnCurrent, btnCar, btnBicycle, btnPedestrian, btnRefresh, btnItinerary;
 
     RelativeLayout layoutSearch;
     RelativeLayout layoutDestination;
@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
     LinearLayout layoutNavigation;
     LinearLayout layoutPOIs;
 
-    TextView txtRemain, txtInstruction;
+    TextView lblRemain, lblInstruction;
 
     // Settings Preferences
     SharedPreferences preferences;
@@ -175,10 +175,11 @@ public class MainActivity extends Activity {
         btnCar = (Button)findViewById(R.id.btnCar);
         btnBicycle = (Button)findViewById(R.id.btnBicycle);
         btnPedestrian = (Button)findViewById(R.id.btnPedestrian);
+        btnRefresh = (Button)findViewById(R.id.btnRefresh);
         btnItinerary = (Button)findViewById(R.id.btnItinerary);
 
-        txtRemain = (TextView)findViewById(R.id.txtRemain);
-        txtInstruction = (TextView)findViewById(R.id.txtInstruction);
+        lblRemain = (TextView)findViewById(R.id.lblRemain);
+        lblInstruction = (TextView)findViewById(R.id.lblInstruction);
 
 		btnMap.setSelected(true);
 
@@ -360,6 +361,7 @@ public class MainActivity extends Activity {
         alertDialog.show();
     }
 
+    /** Called to update the MapView with POIs **/
     void updateUIWithPOI(ArrayList<POI> pois){
         if (pois != null){
 
@@ -467,20 +469,18 @@ public class MainActivity extends Activity {
         if (!isRouteFound){
             if (homeAddress.isEmpty()){
                 Toast.makeText(this,"Please set your home address in application settings",Toast.LENGTH_SHORT).show();
+            } else if (addressToLatLong(homeAddress)){
+                btnClearDestination.setVisibility(View.VISIBLE);
+                btnContactDestination.setVisibility(View.GONE);
+
+                txtDestination.setText(address.getAddressLine(0) +", "+
+                        address.getLocality() +", "+
+                        address.getAdminArea() +", "+
+                        address.getCountryCode());
+
+                new DirectionRequestAsync().execute("routeType=fastest");
             } else {
-                if (addressToLatLong(homeAddress)){
-                    btnClearDestination.setVisibility(View.VISIBLE);
-                    btnContactDestination.setVisibility(View.GONE);
-
-                    txtDestination.setText(address.getAddressLine(0) +", "+
-                            address.getLocality() +", "+
-                            address.getAdminArea() +", "+
-                            address.getCountryCode());
-
-                    new DirectionRequestAsync().execute("routeType=fastest");
-                } else {
-                    Toast.makeText(this,"Invalid Address or Request Out of Service",Toast.LENGTH_SHORT).show();
-                }
+                Toast.makeText(this,"Invalid Address or Request Out of Service",Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -558,6 +558,17 @@ public class MainActivity extends Activity {
     /** Called when Current Button pressed **/
     public void onCurrentPress(View v) {
 
+        getCurrentLocation();
+
+        myItemizedOverlay = new MyItemizedOverlay(currentMarker, resourceProxy);
+
+//        if (!isRouteFound){
+//            mapView.getOverlays().clear();
+//        }
+
+        mapView.getOverlays().add(myItemizedOverlay);
+        myItemizedOverlay.addItem(startPoint, "", "");
+        mapController.setCenter(startPoint);
     }
 
     /** Called when Car Button pressed **/
@@ -593,6 +604,34 @@ public class MainActivity extends Activity {
             btnPedestrian.setSelected(true);
             btnCar.setSelected(false);
             btnBicycle.setSelected(false);
+        }
+    }
+
+    /** Called when Refresh Button pressed **/
+    public void onRefreshPress(View v) {
+
+        if (isRouteFound){
+
+            isRouteFound = false;
+
+            btnClearDestination.setVisibility(View.VISIBLE);
+            btnContactDestination.setVisibility(View.GONE);
+
+            layoutRouteOptions.setVisibility(View.GONE);
+            layoutNavigation.setVisibility(View.GONE);
+
+            layoutSearch.setVisibility(View.VISIBLE);
+            layoutDestination.setVisibility(View.VISIBLE);
+
+            btnHome.setVisibility(View.VISIBLE);
+
+            mapView.getOverlays().clear();
+            txtDestination.setText("");
+            txtDestination.requestFocus();
+
+            btnCar.setSelected(false);
+            btnBicycle.setSelected(false);
+            btnPedestrian.setSelected(false);
         }
     }
 
@@ -757,6 +796,7 @@ public class MainActivity extends Activity {
             myItemizedOverlay.addItem(searchPoint, "", "");
 
             mapView.invalidate();
+            mapController.setCenter(startPoint);
 
             final ArrayList<ExtendedOverlayItem> roadItems =
                     new ArrayList<ExtendedOverlayItem>();
@@ -777,8 +817,6 @@ public class MainActivity extends Activity {
                 nodeMarker.setSubDescription(road.getLengthDurationText(node.mLength, node.mDuration));
                 //nodeMarker.setImage(icon);
             }
-
-            progressDialog.dismiss();
 
             btnClearDestination.setVisibility(View.VISIBLE);
             btnContactDestination.setVisibility(View.GONE);
@@ -802,10 +840,12 @@ public class MainActivity extends Activity {
                 btnNavigation.setText(getResources().getString(R.string.startWalking));
             }
 
-            txtRemain.setText("Remain: "+ Utility.roundNumbers(road.mLength) + " KMs");
-            txtInstruction.setText(road.mNodes.get(0).mInstructions.toString());
+            lblRemain.setText("Remain: "+ Utility.roundNumbers(road.mLength) + " KMs");
+            lblInstruction.setText(road.mNodes.get(0).mInstructions.toString());
 
             isRouteFound = true;
+
+            progressDialog.dismiss();
         }
     }
 

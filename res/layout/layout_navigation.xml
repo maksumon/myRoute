@@ -25,7 +25,7 @@
                 android:layout_height="wrap_content"
                 android:layout_toRightOf="@id/btnNavigation"
                 android:text="Remain:"
-                android:id="@+id/txtRemain"
+                android:id="@+id/lblRemain"
                 android:textStyle="bold"
                 android:gravity="center"
                 android:layout_alignBottom="@+id/btnNavigation"
@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Instruction"
-            android:id="@+id/txtInstruction"
+            android:id="@+id/lblInstruction"
             android:layout_gravity="center"
             android:textStyle="bold" android:textColor="@color/black"/>
 </LinearLayout>
