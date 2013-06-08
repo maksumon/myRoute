@@ -15,8 +15,11 @@ import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.*;
@@ -43,8 +46,9 @@ import org.osmdroid.views.overlay.PathOverlay;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OnInitListener {
 
 	GPSTracker gps;
 
@@ -95,6 +99,8 @@ public class MainActivity extends Activity {
 
     boolean isRouteFound = false;
     boolean isSearchPressed = false;
+
+    private TextToSpeech textToSpeech;
 
     protected static final int ROUTE_REQUEST = 1;
     protected static final int CONTACT_SEARCH_REQUEST = 2;
@@ -229,8 +235,35 @@ public class MainActivity extends Activity {
         final ArrayList<ExtendedOverlayItem> poiItems = new ArrayList<ExtendedOverlayItem>();
         poiMarkers = new ItemizedOverlayWithBubble<ExtendedOverlayItem>(this,
                 poiItems, mapView, new POIInfoWindow(mapView));
+
+        textToSpeech = new TextToSpeech(this, this);
 	}
 
+    /** Called to initialize the TTS Engine **/
+    @Override
+    public void onInit(int status) {
+
+        if (status == TextToSpeech.SUCCESS) {
+
+            int result = textToSpeech.setLanguage(Locale.US);
+
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "This Language is not supported");
+            } else {
+                Log.i("TTS", "Working with good results");
+            }
+        } else {
+            Log.e("TTS", "Initilization Failed!");
+        }
+    }
+
+    /** Called to speak out the parameter string **/
+    private void speakOut(String text) {
+
+        textToSpeech.speak(text, TextToSpeech.QUEUE_ADD, null);
+    }
+
+    /** Custom Text Watcher for AutoCompleteTextFields **/
 	final TextWatcher textChecker = new TextWatcher() {
 
 		public void afterTextChanged(Editable s) {
@@ -646,7 +679,7 @@ public class MainActivity extends Activity {
         startActivityForResult(i, ROUTE_REQUEST);
     }
 
-	/** Called to Geocode contact address and update Map accordingly. */
+    /** Called to Geocode contact address and update Map accordingly. */
 	public class ContactAddressAsync extends AsyncTask<String, Integer, String> {
 
         boolean success;
@@ -776,76 +809,82 @@ public class MainActivity extends Activity {
 
         protected void onPostExecute(String result) {
 
-            mapView.getOverlays().clear();
-            mapView.getOverlays().add(roadOverlay);
+            if (road.mStatus == 1){
+                mapView.getOverlays().clear();
+                mapView.getOverlays().add(roadOverlay);
 
-            Drawable tempMarker = getResources().getDrawable(R.drawable.source2);
-            Bitmap bitmap = ((BitmapDrawable) tempMarker).getBitmap();
-            sourceMarker = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 50, 50, true));
+                Drawable tempMarker = getResources().getDrawable(R.drawable.source2);
+                Bitmap bitmap = ((BitmapDrawable) tempMarker).getBitmap();
+                sourceMarker = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 50, 50, true));
 
-            tempMarker = getResources().getDrawable(R.drawable.destination2);
-            bitmap = ((BitmapDrawable) tempMarker).getBitmap();
-            destinationMarker = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 50, 50, true));
+                tempMarker = getResources().getDrawable(R.drawable.destination2);
+                bitmap = ((BitmapDrawable) tempMarker).getBitmap();
+                destinationMarker = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 50, 50, true));
 
-            myItemizedOverlay = new MyItemizedOverlay(sourceMarker, resourceProxy);
-            mapView.getOverlays().add(myItemizedOverlay);
-            myItemizedOverlay.addItem(startPoint, "", "");
+                myItemizedOverlay = new MyItemizedOverlay(sourceMarker, resourceProxy);
+                mapView.getOverlays().add(myItemizedOverlay);
+                myItemizedOverlay.addItem(startPoint, "", "");
 
-            myItemizedOverlay = new MyItemizedOverlay(destinationMarker, resourceProxy);
-            mapView.getOverlays().add(myItemizedOverlay);
-            myItemizedOverlay.addItem(searchPoint, "", "");
+                myItemizedOverlay = new MyItemizedOverlay(destinationMarker, resourceProxy);
+                mapView.getOverlays().add(myItemizedOverlay);
+                myItemizedOverlay.addItem(searchPoint, "", "");
 
-            mapView.invalidate();
-            mapController.setCenter(startPoint);
+                mapView.invalidate();
+                mapController.setCenter(startPoint);
 
-            final ArrayList<ExtendedOverlayItem> roadItems =
-                    new ArrayList<ExtendedOverlayItem>();
-            roadNodeMarkers =
-                    new ItemizedOverlayWithBubble<ExtendedOverlayItem>(MainActivity.this, roadItems, mapView);
-            mapView.getOverlays().add(roadNodeMarkers);
+                final ArrayList<ExtendedOverlayItem> roadItems =
+                        new ArrayList<ExtendedOverlayItem>();
+                roadNodeMarkers =
+                        new ItemizedOverlayWithBubble<ExtendedOverlayItem>(MainActivity.this, roadItems, mapView);
+                mapView.getOverlays().add(roadNodeMarkers);
 
-            Drawable marker = getResources().getDrawable(R.drawable.marker_node);
-            //Drawable icon = getResources().getDrawable(R.drawable.moreinfo_arrow);
+                Drawable marker = getResources().getDrawable(R.drawable.marker_node);
+                //Drawable icon = getResources().getDrawable(R.drawable.moreinfo_arrow);
 
-            for (int i=0; i<road.mNodes.size(); i++){
-                RoadNode node = road.mNodes.get(i);
-                ExtendedOverlayItem nodeMarker = new ExtendedOverlayItem("Step "+i, "", node.mLocation, MainActivity.this);
-                nodeMarker.setMarkerHotspot(OverlayItem.HotspotPlace.CENTER);
-                nodeMarker.setMarker(marker);
-                roadNodeMarkers.addItem(nodeMarker);
-                nodeMarker.setDescription(node.mInstructions);
-                nodeMarker.setSubDescription(road.getLengthDurationText(node.mLength, node.mDuration));
-                //nodeMarker.setImage(icon);
-            }
+                for (int i=0; i<road.mNodes.size(); i++){
+                    RoadNode node = road.mNodes.get(i);
+                    ExtendedOverlayItem nodeMarker = new ExtendedOverlayItem("Step "+i, "", node.mLocation, MainActivity.this);
+                    nodeMarker.setMarkerHotspot(OverlayItem.HotspotPlace.CENTER);
+                    nodeMarker.setMarker(marker);
+                    roadNodeMarkers.addItem(nodeMarker);
+                    nodeMarker.setDescription(node.mInstructions);
+                    nodeMarker.setSubDescription(road.getLengthDurationText(node.mLength, node.mDuration));
+                    //nodeMarker.setImage(icon);
+                }
 
-            btnClearDestination.setVisibility(View.VISIBLE);
-            btnContactDestination.setVisibility(View.GONE);
+                btnClearDestination.setVisibility(View.VISIBLE);
+                btnContactDestination.setVisibility(View.GONE);
 
-            layoutRouteOptions.setVisibility(View.VISIBLE);
-            layoutNavigation.setVisibility(View.VISIBLE);
+                layoutRouteOptions.setVisibility(View.VISIBLE);
+                layoutNavigation.setVisibility(View.VISIBLE);
 
-            layoutSearch.setVisibility(View.GONE);
-            layoutDestination.setVisibility(View.GONE);
+                layoutSearch.setVisibility(View.GONE);
+                layoutDestination.setVisibility(View.GONE);
 
-            btnHome.setVisibility(View.GONE);
+                btnHome.setVisibility(View.GONE);
 
-            if (result.equals("routeType=fastest")){
-                btnCar.setSelected(true);
-                btnNavigation.setText(getResources().getString(R.string.startDriving));
-            } else if (result.equals("routeType=bicycle")){
-                btnBicycle.setSelected(true);
-                btnNavigation.setText(getResources().getString(R.string.startRiding));
+                if (result.equals("routeType=fastest")){
+                    btnCar.setSelected(true);
+                    btnNavigation.setText(getResources().getString(R.string.startDriving));
+                } else if (result.equals("routeType=bicycle")){
+                    btnBicycle.setSelected(true);
+                    btnNavigation.setText(getResources().getString(R.string.startRiding));
+                } else {
+                    btnPedestrian.setSelected(true);
+                    btnNavigation.setText(getResources().getString(R.string.startWalking));
+                }
+
+                lblRemain.setText("Remain: " + Utility.roundNumbers(road.mLength) + " KMs");
+                lblInstruction.setText(road.mNodes.get(0).mInstructions.toString());
+
+                isRouteFound = true;
+
+                progressDialog.dismiss();
+
+                speakOut("Route found, distance: " + Utility.roundNumbers(road.mLength) + " kilometers");
             } else {
-                btnPedestrian.setSelected(true);
-                btnNavigation.setText(getResources().getString(R.string.startWalking));
+                speakOut("No route found, try again");
             }
-
-            lblRemain.setText("Remain: "+ Utility.roundNumbers(road.mLength) + " KMs");
-            lblInstruction.setText(road.mNodes.get(0).mInstructions.toString());
-
-            isRouteFound = true;
-
-            progressDialog.dismiss();
         }
     }
 
@@ -926,4 +965,15 @@ public class MainActivity extends Activity {
 
         getPreferences();
 	}
+
+    /** Called when activity destroyed. */
+    @Override
+    public void onDestroy() {
+        // Don't forget to shutdown tts!
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        super.onDestroy();
+    }
 }

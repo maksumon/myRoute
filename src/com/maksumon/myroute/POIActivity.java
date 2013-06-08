@@ -98,5 +98,4 @@ class POIAdapter extends BaseAdapter implements OnClickListener {
 	@Override public void onClick(View arg0) {
 		//nothing to do.
 	}
-    
 }
