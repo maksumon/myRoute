@@ -107,7 +107,7 @@ public class WelcomeActivity extends Activity {
         }
     }
 
-    /** Called to cache Contact from Address book */
+    /** Called to Get GPS Location */
     private class GetLocationAsync extends AsyncTask<String, Integer, String> {
 
         //Get Current Location
@@ -130,7 +130,8 @@ public class WelcomeActivity extends Activity {
 
             gps.stopUsingGPS();
 
-            if(!startAddress.isEmpty()){
+            //if(!startAddress.isEmpty()){
+            if(!startAddress.equalsIgnoreCase("")){
                 Intent intent = new Intent(WelcomeActivity.this,MainActivity.class);
                 intent.putExtra("address", startAddress);
                 intent.putExtra("latitude", latitude);
@@ -147,11 +148,13 @@ public class WelcomeActivity extends Activity {
                 // check if GPS enabled
                 if(gps.canGetLocation()){
 
-                    while(startAddress.isEmpty()){
+                    //while(startAddress.isEmpty()){
+                	while(startAddress.equalsIgnoreCase("")){
                         latitude = gps.getLatitude();
                         longitude = gps.getLongitude();
 
-                        startAddress = latlongToAddress(latitude,longitude);
+                        //startAddress = latlongToAddress(latitude,longitude);
+                        startAddress = GoogleGeocoder.fromLocation(latitude, longitude);
                     }
                 }else{
                     // can't get location

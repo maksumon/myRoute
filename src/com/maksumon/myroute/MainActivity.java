@@ -189,7 +189,7 @@ public class MainActivity extends Activity implements OnInitListener {
 
 		btnMap.setSelected(true);
 
-        if (txtSearch.getText().toString().isEmpty()){
+        if (txtSearch.getText().toString().equalsIgnoreCase("")){
             btnClearSearch.setVisibility(View.GONE);
             btnContactSearch.setVisibility(View.VISIBLE);
         }
@@ -210,10 +210,11 @@ public class MainActivity extends Activity implements OnInitListener {
         // ##### Receiving data ends
 
 		mapView = (MapView)findViewById(R.id.mapView);
-		mapView.setTileSource(TileSourceFactory.CLOUDMADESTANDARDTILES);
+//		mapView.setTileSource(TileSourceFactory.CLOUDMADESTANDARDTILES);
+		mapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
 		mapView.setMultiTouchControls(true);
 
-		mapController = mapView.getController();
+		mapController = (MapController) mapView.getController();
 		mapController.setZoom(16);
 		mapController.setCenter(startPoint);
 
@@ -470,7 +471,7 @@ public class MainActivity extends Activity implements OnInitListener {
 
             txtDestination.requestFocus();
 
-            if (txtDestination.getText().toString().isEmpty()){
+            if (txtDestination.getText().toString().equalsIgnoreCase("")){
                 btnClearDestination.setVisibility(View.GONE);
                 btnContactDestination.setVisibility(View.VISIBLE);
             }
@@ -500,7 +501,7 @@ public class MainActivity extends Activity implements OnInitListener {
     public void onHomePress(View v) {
 
         if (!isRouteFound){
-            if (homeAddress.isEmpty()){
+            if (homeAddress.equalsIgnoreCase("")){
                 Toast.makeText(this,"Please set your home address in application settings",Toast.LENGTH_SHORT).show();
             } else if (addressToLatLong(homeAddress)){
                 btnClearDestination.setVisibility(View.VISIBLE);
